@@ -1,0 +1,60 @@
+model {
+for (i in 1:Nx){
+Zx ~ dnorm (muzx[i],preczx[i])
+muzx[i]= x[i]
+preczx[i]=1/epsx
+x[i] ~ dnorm (mux[i], precx[i])
+mux[i] = gama0 + gama1*lat[i] + gama2*lon[i]+ V[i,]%*% b
+precx[i] = 1/deltax
+Zy ~ dnorm (muzy[i],preczy[i])
+muzy[i]= y[i]
+preczy[i]=1/epsy
+y[i] ~ dnorm (muy[i], precy[i])
+muy[i] = beta0+ beta1*x[i]+U[i,]%*% a
+precy[i] = 1/deltay
+}
+b ~ dmnorm(mub, Sigmab.inv)
+Sigmab.inv = inverse (Sigmab)
+for(i in 1:r){
+mub[i]=0
+Sigmab[i,i]= sigmasq
+for(j in 1:(i-1)){
+Sigmab[i,j] = sigmasq*exp(-phi*(D[i,j]))
+Sigmab[j,i] = sigmab[i,j]
+} }
+for (i in Nx+1:Ny){
+xp[i] ~ dnorm (muxp[i], precxp[i])
+muxp[i] = gama0 + gama1*lat[i] + gama2*lon[i]+ V[i,]%*% b
+precxp[i] = 1/deltax
+y[i] ~ dnorm (muy[i], precy[i])
+muy[i] = beta0+ beta1*xp[i]+U[i,]%*% a
+precy[i] = 1/deltay
+}
+for ( i in 1:r ) {
+for( j in 1:r){
+h[i,j]=rho[i]*equals(i,j)
+}}
+a ~ dmnorm(mua,Sigmaa.inv)
+Sigmaa.inv =inverse(sigmaa)
+for(i in 1:r){
+mua[i]=h[i,]%*% b
+for(j in 1:r){
+sigmaa[i,j]=sigmaeta*equals(i,j)
+}}
+### Prior distributions ###
+deltax = 1/deltax.inv
+deltax.inv dgamma(2,1)
+beta0 ~ dnorm(0,0.0001)
+beta1 ~ dnorm(0,0.0001)
+gama0 ~ dnorm(0,0.0001)
+gama1 ~ dnorm(0,0.0001)
+gama2 ~ dnorm(0,0.0001)
+deltay = 1/deltay.inv
+deltay.inv dgamma(2,1)
+sigmasq = 1/sigmasq.inv
+sigmasq.inv dgamma(2,1)
+sigmaeta = 1/sigmaeta.inv
+sigmaeta.inv dgamma(2,1)
+phi dgamma(2,0.24)
+rho[i] ~ dnorm(0,0.15)
+}# end model
